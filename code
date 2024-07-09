@@ -76,3 +76,51 @@ print("\nExample of time series data from Physiology DataFrame:")
 if not physiology_df.empty:
     print(physiology_df['timeseries'].iloc[0]) 
 
+
+
+# 
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import SGDClassifier
+from sklearn.metrics import accuracy_score, classification_report
+
+# Assuming pathology_df and physiology_df are already defined
+
+# Add a category column to distinguish between pathology and physiology
+pathology_df['category'] = 'pathology'
+physiology_df['category'] = 'physiology'
+
+# Merge pathology_df and physiology_df
+merged_df = pd.concat([pathology_df, physiology_df], ignore_index=True)
+
+# Check the merged DataFrame
+print(merged_df.head())
+
+# Separate features (timeseries data) and labels (category_name)
+X = [ts.flatten() for ts in merged_df['timeseries'].values]
+y = [1 if category == 'pathology' else 0 for category in merged_df['category']]
+
+# Convert to numpy arrays
+X = np.array(X)
+y = np.array(y)
+
+# Perform train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+
+# Initialize SGDClassifier model
+model = SGDClassifier(loss='log_loss', max_iter=1000)
+
+# Train the model
+model.fit(X_train, y_train)
+
+# Predict using the model
+y_pred = model.predict(X_test)
+
+# Evaluate model performance
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy}")
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+
+print("done")
+
