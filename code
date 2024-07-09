@@ -1,0 +1,78 @@
+import pandas as pd
+import scipy.io
+import os
+
+def read_csv(file_path):
+    df = pd.read_csv(file_path, delimiter=',')  # Read
+    print("Columns in CSV file:", df.columns)
+    return df
+
+def read_mat_files(df, folder_path, categories=["physiology", "pathology"]):
+    mat_data = {}
+    for category in categories:
+        category_df = df[df['category_name'] == category]  # Filter by category
+        mat_data[category] = []
+        for _, row in category_df.iterrows():
+            file_name = f"{row['segment_id']}.mat"
+            file_path = os.path.join(folder_path, file_name)
+            if os.path.exists(file_path):
+                mat_data[category].append((row['segment_id'], scipy.io.loadmat(file_path)))  # Load the .mat files
+            else:
+                print(f"File {file_path} not found.")
+    return mat_data
+
+def extract_timeseries_from_mat(data):
+    """
+    Adjust this function based on the actual structure of your .mat files.
+    This function assumes that the time series data is stored under a key named 'data'.
+    """
+    timeseries = []
+    if 'data' in data:
+        timeseries = data['data']  # Extract time series data
+    else:
+        print("No 'data' key found in the .mat file.")
+    return timeseries
+
+def create_df_from_mat_data(mat_data, category):
+    data_list = []
+    for segment_id, data in mat_data[category]:
+        timeseries = extract_timeseries_from_mat(data)
+        data_list.append({'segment_id': segment_id, 'timeseries': timeseries})
+    return pd.DataFrame(data_list)
+
+csv_file_path = r'/home/zeynepki/Desktop/Dataset_Mayo./DATASET_MAYO/segments.csv'  
+mat_folder_path = r'/home/zeynepki/Desktop/Dataset_Mayo./DATASET_MAYO' 
+
+df = read_csv(csv_file_path)
+
+if 'category_name' in df.columns:
+    mat_data = read_mat_files(df, mat_folder_path)  # .mat files for pathology and physiology
+    
+    if "pathology" in mat_data:
+        pathology_df = create_df_from_mat_data(mat_data, "pathology")  # DataFrame for pathology
+    else:
+        pathology_df = pd.DataFrame()
+        print("No pathology data found.")
+    
+    if "physiology" in mat_data:
+        physiology_df = create_df_from_mat_data(mat_data, "physiology")  # DataFrame for physiology
+    else:
+        physiology_df = pd.DataFrame()
+        print("No physiology data found.")
+else:
+    print("Error: 'category_name' column not found in the CSV file.")
+
+print("Pathology DataFrame:")
+print(pathology_df)
+
+print("Physiology DataFrame:")
+print(physiology_df)
+
+print("\nExample of time series data from Pathology DataFrame:")
+if not pathology_df.empty:
+    print(pathology_df['timeseries'].iloc[0]) 
+
+print("\nExample of time series data from Physiology DataFrame:")
+if not physiology_df.empty:
+    print(physiology_df['timeseries'].iloc[0]) 
+
