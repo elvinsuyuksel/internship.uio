@@ -45,13 +45,13 @@ if 'category_name' in df.columns:
     mat_data = read_mat_files(df, mat_folder_path)  # .mat files for pathology and physiology
     
     if "pathology" in mat_data:
-        pathology_df = create_df_from_mat_data(mat_data, "pathology")  # DataFrame for pathology
+        pathology_df = create_df_from_mat_data(mat_data, "pathology")
     else:
         pathology_df = pd.DataFrame()
         print("No pathology data found.")
     
     if "physiology" in mat_data:
-        physiology_df = create_df_from_mat_data(mat_data, "physiology")  # DataFrame for physiology
+        physiology_df = create_df_from_mat_data(mat_data, "physiology")
     else:
         physiology_df = pd.DataFrame()
         print("No physiology data found.")
@@ -87,7 +87,7 @@ merged_df = pd.concat([pathology_df, physiology_df], ignore_index=True)
 
 print(merged_df.head())
 
-# Separate features (timeseries data) and labels (category_name)
+# Separate features (timeseries and category_name)
 X = [ts.flatten() for ts in merged_df['timeseries'].values]
 y = [1 if category == 'pathology' else 0 for category in merged_df['category']]
 
@@ -95,15 +95,11 @@ X = np.array(X)
 y = np.array(y)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
-
 model = SGDClassifier(loss='log_loss', max_iter=1000)# Initialize model
-
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Accuracy: {accuracy}")
 print("Classification Report:")
-print(classification_report(y_test, y_pred))
-
-
+print(classification_report(y_test, y_pred)) 
