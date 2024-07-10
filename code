@@ -22,10 +22,6 @@ def read_mat_files(df, folder_path, categories=["physiology", "pathology"]):
     return mat_data
 
 def extract_timeseries_from_mat(data):
-    """
-    Adjust this function based on the actual structure of your .mat files.
-    This function assumes that the time series data is stored under a key named 'data'.
-    """
     timeseries = []
     if 'data' in data:
         timeseries = data['data']  # Extract time series data
